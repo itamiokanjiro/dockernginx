@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+  test-bot:
+    build: ./app
+    container_name: TestBot
+    volumes:
+      - ./data:/app/data
+    ports:
+      - "8002:80"   # 宿主機 8002 → 容器 80
+    restart: "no"

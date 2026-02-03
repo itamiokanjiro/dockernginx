@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+  test-bot:
+    build: ./app
+    volumes:
+      - ./data/npm:/usr/share/nginx/html:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro   # 真實憑證目錄
+      - ./conf/npm/nginx.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "443"   # 不指定宿主機 port
+    restart: "no"
+  ok-bot:
+    build: ./app
+    volumes:
+      - ./data/npm:/usr/share/nginx/html:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro   # 真實憑證目錄
+      - ./conf/npm/nginx.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "8999:443"
+    restart: "no"
+  serverfile:
+    build: ./app
+    volumes:
+      - ./data/save:/usr/share/nginx/html:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro   # 真實憑證目錄
+      - ./conf/save/nginx.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "669:443"
+    restart: "no"
