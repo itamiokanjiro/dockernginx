@@ -25,3 +25,4 @@ docker compose down 。
 - 如需自訂網路，請在 docker-compose.yml 裡設定 network
 - 記得先在/data/npm 或save 放置網站的index.html
 - .env.template 複製一份.env 填入數據庫帳密
+- [項目網址](https://www.satsuki-fantasy.com/)
