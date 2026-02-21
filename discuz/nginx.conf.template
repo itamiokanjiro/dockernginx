@@ -12,6 +12,7 @@ server {
 
     server_tokens off;
 
+
     ssl_certificate /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
     include /etc/letsencrypt/options-ssl-nginx.conf;
@@ -50,12 +51,19 @@ server {
     # ------------------------------
     # PHP 配置 (Unix Socket)
     # ------------------------------
-    location ~ \.php$ {
-        include fastcgi_params;
-        fastcgi_pass unix:/run/php/php7.4-fpm.sock;
-        fastcgi_index index.php;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-    }
+location ~ \.php$ {
+    include fastcgi_params;
+    fastcgi_pass unix:/run/php/php7.4-fpm.sock;
+    fastcgi_index index.php;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+
+    fastcgi_connect_timeout 300s;
+    fastcgi_send_timeout 300s;
+    fastcgi_read_timeout 300s;
+    fastcgi_buffer_size 128k;
+    fastcgi_buffers 4 256k;
+    fastcgi_busy_buffers_size 256k;
+}
 
     # ------------------------------
     # Webhook 反向代理
@@ -72,14 +80,7 @@ server {
     # ------------------------------
     # Comic 資料夾保護 + rewrite
     # ------------------------------
-    location /comic1/ {
-        location ~* \.(jpg|jpeg|png|gif|webp|bmp|svg|ico)$ {
-            try_files $uri $uri/ =404;
-            break;
-        }
-        rewrite ^/comic1/([0-9]+)/?$ /comic1.php?id=$1 last;
-        try_files $uri $uri/ /comic1.php?id=$1;
-    }
+
 
     location /comic2/ {
         location ~* \.(jpg|jpeg|png|gif|webp|bmp|svg|ico|css|js)$ {
@@ -90,5 +91,33 @@ server {
         try_files $uri $uri/ /comic2.php?id=$1;
     }
 
+    
+
+location /satsuki/ {
+    root /usr/share/nginx/html;
+    index index.html;
+
+
+    # SPA fallback
+    try_files $uri /satsuki/index.html;
+
+    # CSP header
+    add_header Content-Security-Policy "
+        default-src 'self' https: data:;
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https:;
+        img-src 'self' https: data: blob:;
+        media-src 'self' https: blob: data:;
+    " always;
+}
+
+    location /comic1/ {
+        location ~* \.(jpg|jpeg|png|gif|webp|bmp|svg|ico)$ {
+            try_files $uri $uri/ =404;
+            break;
+        }
+        rewrite ^/comic1/([0-9]+)/?$ /oldcomic/comic1.php?id=$1 last;
+        try_files $uri $uri/ /oldcomic/comic1.php?id=$1;
+    }
 
 }
+

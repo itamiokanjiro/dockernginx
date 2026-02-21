@@ -4,7 +4,7 @@ services:
 
   # 最初測試 無線連開docker網頁
   test-bot:
-    build: ./app
+    image: ghcr.io/itamiokanjiro/dockernginx/test-bot:1.0
     env_file:
       - ./.env
     volumes:
@@ -16,7 +16,7 @@ services:
 
   # 基於test-bot 生成正式版本 端口 設定
   ok-bot:
-    build: ./app
+    image: ghcr.io/itamiokanjiro/dockernginx/test-bot:1.0
     env_file:
       - ./.env
     volumes:
@@ -29,7 +29,7 @@ services:
 
   # 後端+身分驗證的nginx docker 禁止未經授權用戶訪問
   serverfile:
-    build: ./jsdocker
+    image: ghcr.io/itamiokanjiro/dockernginx/serverfile:1.0
     env_file:
       - ./.env
     volumes:
@@ -42,7 +42,6 @@ services:
     networks:
       - mynet
   # 後端用的mysql 將本地mysql遷移至docker 每周固定 吸收為 sqlite 
-  # 因為本身儲存  各大遊戲廠商 原神.崩鐵.鳴朝.棕色塵埃2 FANZA所有遊戲的初始號所需數據
   mysql:
     build: ./mysql
     container_name: mysql
@@ -55,7 +54,7 @@ services:
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "192.168.1.104:1992:3306"
+      - "1992:3306"
     volumes:
       - /kok/dockert/mysql/save:/var/lib/mysql
     networks:
@@ -63,7 +62,7 @@ services:
   # discuz 初次將PHP轉換成docker上架 伺服器 
 
   discuz:
-    build: ./discuz
+    image: ghcr.io/itamiokanjiro/dockernginx/discuz:1.0
     container_name: discuz
     restart: "no"
     env_file:

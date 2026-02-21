@@ -1,6 +1,6 @@
 FROM nginx:bullseye
 
-# 安裝 PHP 7.4 和常用擴展
+# 安裝 PHP 7.4 與擴展
 RUN apt update && apt install -y \
     php7.4 \
     php7.4-cli \
@@ -27,18 +27,18 @@ WORKDIR /usr/share/nginx/html
 # 複製 nginx 配置模板
 COPY ./nginx.conf.template /etc/nginx/conf.d/default.conf.template
 
-# 設定 PHP-FPM pool 權限（socket owner/group/mode）
+# 設定 PHP-FPM pool 權限
 RUN sed -i 's|^;listen.owner =.*|listen.owner = www-data|' /etc/php/7.4/fpm/pool.d/www.conf \
     && sed -i 's|^;listen.group =.*|listen.group = www-data|' /etc/php/7.4/fpm/pool.d/www.conf \
     && sed -i 's|^;listen.mode =.*|listen.mode = 0666|' /etc/php/7.4/fpm/pool.d/www.conf \
     && sed -i 's|^listen = .*|listen = /run/php/php7.4-fpm.sock|' /etc/php/7.4/fpm/pool.d/www.conf
 
+# 複製 entrypoint
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
 # 開放 443
 EXPOSE 443
 
-# 啟動 PHP-FPM 與 nginx（使用 Unix Socket）
-CMD bash -c "\
-    envsubst '\$DOMAIN' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf && \
-    /usr/sbin/php-fpm7.4 -F & \
-    nginx -g 'daemon off;' \
-"
+# 用 JSON CMD 執行 entrypoint.sh
+CMD ["/start.sh"]

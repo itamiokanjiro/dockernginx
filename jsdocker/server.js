@@ -36,6 +36,17 @@ const db = mysql.createPool({
 // authMiddleware.js
 app.use(async (req, res, next) => {
   try {
+    // =========================
+    // Referer 驗證
+    // =========================
+    const referer = req.get("Referer") || "";
+    if (!referer.startsWith("https://www.satsuki-fantasy.com")) {
+      return res.status(403).json({ message: "Invalid referer" });
+    }
+
+    // =========================
+    // Auth Token 驗證
+    // =========================
     let token = req.cookies.auth;
     if (!token && req.headers.authorization?.startsWith("Bearer ")) {
       token = req.headers.authorization.split(" ")[1];
@@ -57,11 +68,13 @@ app.use(async (req, res, next) => {
       return res.status(401).json({ message: "驗證失敗", redirect: "/login" });
     }
 
-    // 驗證成功 → 設置內部 redirect header 或直接 next()
+    // =========================
+    // 驗證成功 → 設置內部 redirect header
+    // =========================
     res.setHeader("X-Accel-Redirect", `/_internal/${req.path}`);
     return res.status(200).end();
   } catch (err) {
-    console.error("Auth middleware error:", err);
+    console.error("Auth+Referer middleware error:", err);
     return res.sendStatus(500);
   }
 });
