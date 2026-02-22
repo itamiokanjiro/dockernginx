@@ -1,0 +1,38 @@
+# nginx.conf.template
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+
+    server_name ${DOMAIN} 192.168.1.104;
+
+    server_tokens off;
+    root /usr/share/nginx/html;
+
+    ssl_certificate /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    add_header Access-Control-Allow-Origin "https://www.satsuki-fantasy.com" always;
+    add_header Access-Control-Allow-Methods "GET, POST, OPTIONS" always;
+    add_header Access-Control-Allow-Headers "Content-Type, Authorization" always;
+    add_header Access-Control-Allow-Credentials "true" always;
+
+    location / {
+        
+        proxy_pass https://127.0.0.1:711;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        if ($request_method = OPTIONS) {
+            return 204;
+        }
+    }
+
+    location /_internal/ {
+        internal;
+        alias /usr/share/nginx/html/;
+    }
+}

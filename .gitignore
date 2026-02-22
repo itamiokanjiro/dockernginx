@@ -1,0 +1,12 @@
+data/
+1.txt
+git.txt
+iptabletest.txt
+tf/
+all_databases.sql
+mysql/all_databases.sql
+mysql/save
+js/
+.env
+mysqlback/
+images/

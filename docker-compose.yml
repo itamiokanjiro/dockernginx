@@ -1,0 +1,92 @@
+version: "3.9"
+
+services:
+
+  # 最初測試 無線連開docker網頁
+  test-bot:
+    image: ghcr.io/itamiokanjiro/dockernginx/test-bot:1.0
+    env_file:
+      - ./.env
+    volumes:
+      - ./data/npm:/usr/share/nginx/html:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro   # 真實憑證目錄
+    ports:
+      - "443"   # 不指定宿主機 port
+    restart: "no"
+
+  # 基於test-bot 生成正式版本 端口 設定
+  ok-bot:
+    image: ghcr.io/itamiokanjiro/dockernginx/test-bot:1.0
+    env_file:
+      - ./.env
+    volumes:
+      - ./data/npm:/usr/share/nginx/html:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro   # 真實憑證目錄
+    ports:
+      - "8443:443"
+    restart: "no"
+
+
+  # 後端+身分驗證的nginx docker 禁止未經授權用戶訪問
+  serverfile:
+    image: ghcr.io/itamiokanjiro/dockernginx/serverfile:1.0
+    env_file:
+      - ./.env
+    volumes:
+      - ./data/save:/usr/share/nginx/html:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro   # 真實憑證目錄
+    ports:
+      - "2087:443"
+      - "711:711"
+    restart: "no"
+    networks:
+      - mynet
+  # 後端用的mysql 將本地mysql遷移至docker 每周固定 吸收為 sqlite 
+  mysql:
+    build: ./mysql
+    container_name: mysql
+    restart: "no"
+    env_file:
+      - ./.env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "1992:3306"
+    volumes:
+      - /kok/dockert/mysql/save:/var/lib/mysql
+    networks:
+      - mynet
+  # discuz 初次將PHP轉換成docker上架 伺服器 
+
+  discuz:
+    image: ghcr.io/itamiokanjiro/dockernginx/discuz:1.0
+    container_name: discuz
+    restart: "no"
+    env_file:
+      - ./.env
+    ports:
+      - "443:443"
+    volumes:
+      - ./data/discuz/html:/usr/share/nginx/html:rw
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    networks:
+      - mynet
+
+
+networks:
+  mynet:
+    driver: bridge
+
+  #usejs:
+  #  build: ./js
+  #  volumes:
+
+  #  ports:
+  #    - "669:443"
+  #  restart: "no"
+  # docker network create mynet
+
+
